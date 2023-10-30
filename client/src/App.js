@@ -1,12 +1,53 @@
-import logo from './logo.svg';
-import './App.css';
+import React from 'react'
+import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 
-function App() {
+//import All components
+import Username from './components/Username';
+import Password from './components/Password';
+import Register from './components/Register';
+import Recovery from './components/Recovery';
+import Reset from './components/Reset';
+import PageNotFound from './components/PageNotFound';
+import Profile from './components/Profile'
+
+//root routes
+
+const router = createBrowserRouter([
+    {
+        path:'/',
+        element: <Username></Username>
+    },
+    {
+        path:'/register',
+        element: <Register></Register>
+    },
+    {
+        path:'/password',
+        element: <Password></Password>
+    },
+    {
+        path:'/profile',
+        element: <Profile></Profile>
+    },
+    {
+        path:'/recovery',
+        element: <Recovery></Recovery>
+    },
+    {
+        path:'/reset',
+        element: <Reset></Reset>
+    },
+    {
+        path:'*',
+        element: <PageNotFound></PageNotFound>
+    }
+])
+export default function App() {
   return (
-    <div className="App">
-      <div>Learn React</div>
-    </div>
-  );
-}
+    <main>
+        <RouterProvider router = {router}>
 
-export default App;
+        </RouterProvider>
+    </main>
+  )
+}
