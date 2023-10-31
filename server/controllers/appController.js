@@ -2,6 +2,7 @@ import UserModel from '../model/User.model.js';
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import ENV from '../config.js'
+import otpGenerator from 'otp-generator'
 
 
 /** middleware for verify user */
@@ -128,35 +129,60 @@ export async function login(req,res){
 /**GET: http://localhost:8080/api/user/example123 */
 export async function getUser(req,res){
     const {username} = req.params;
-    console.log(username);
-    try{
-        if(!username) return res.status(501).send({error:"Invalid username"});
+    // console.log(username);
 
-        // UserModel.findOne({username},function(err,user){
-        //     if(err) return res.status(500).send({err});
-        //     if(!user) return res.status(501).send({error:"Couldn't Find the User"});
-        //     const {password, ...rest} = user;
-        //     return res.status(201).send(rest);
-        // })
+    try {
+        if(!username) return res.staus(501).send({error:"Invalid Username"})
+        UserModel.findOne({username})
+            .then(user => {
 
-        // UserModel.findOne({ username }).then((err,user) => {
-        //     if(err) reject(new Error(err))
-        //     if(!user) reject({ error: "User not Found"});
-            
-        //     return res.status(201).send(user);
-        // });
+                /**Removind password from the user 
+                 * and mongoose return unnecessary data with object so convert it into json
+                 */
+                const {password, ...rest } = Object.assign({},user.toJSON());
+                return res.status(201).send({userData:rest})})
+            .catch(err => res.status(401).send({error: err}));
     }
-    catch(error){
-        return res.status(404).send({error:"Cannot Find user Data"});
+    catch{
+        return res.status(404).send({error: "Cannot Find User Data"})
     }
 }
 
+
+/**PUT : http://localhost:8080/api/updateuser
+ * @param: {
+ * "id": "<userid>"
+ * }
+ * body : {
+ * firstName: '',
+ * address: '',
+ * profile: ''
+ * }
+ */
 export async function updateUser(req,res){
-    res.json("updateUser route")
+   try{
+    const id = req.query.id;
+    if(id){
+        const body = req.body;
+        //update the data;
+        UserModel.updateOne({_id:id}, body)
+            .then( (result) => {
+                return res.status(201).send({msg: "Record Updated...!"});
+            })
+            .catch(err => {throw err});
+    }
+    else{
+        return res.status(401).send({error:"User Not Found"});
+    }
+   }
+   catch(error){
+    return res.status(401).send({error});
+   }
+    // res.json('updateUser route')
 }
 
 export async function generateOTP(req,res){
-    res.json('generateOTP route');
+    let OTP = await otpGenerator.generate(6, {lowerCaseAlphabets: false, upperCaseAlphabets: false, specialChars: false});
 }
 
 
@@ -170,4 +196,10 @@ export async function createResetSession(req,res){
 
 export async function resetPassword(req,res){
     res.json('reset password route');
+}
+
+export async function getAllData(req,res){
+    const allUserData = UserModel.find({}).
+        then(result => res.status(201).send({msg:result}));
+    console.log(allUserData);
 }
