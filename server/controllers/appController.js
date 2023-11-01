@@ -160,46 +160,102 @@ export async function getUser(req,res){
  * }
  */
 export async function updateUser(req,res){
-   try{
-    const id = req.query.id;
-    if(id){
-        const body = req.body;
-        //update the data;
-        UserModel.updateOne({_id:id}, body)
-            .then( (result) => {
-                return res.status(201).send({msg: "Record Updated...!"});
-            })
-            .catch(err => {throw err});
+    try {
+        
+        // const id = req.query.id;
+        const { userId } = req.user;
+
+        if(userId){
+            const body = req.body;
+
+            // update the data
+            UserModel.updateOne({_id:userId},body)
+                .then((result) => {
+                    if(result){
+                        return res.status(201).send({msg:"Record Updated...!"});
+                    }
+                    else{
+                        return res.status(404).send({error:"Record Not Found"});
+                    }
+                })
+                .catch((error) => {
+                    return res.status(500).send({error:"Unable to update Record..."});
+                })
+
+        }else{
+            return res.status(401).send({ error : "User Not Found...!"});
+        }
+
+    } catch (error) {
+        return res.status(401).send({ error });
     }
-    else{
-        return res.status(401).send({error:"User Not Found"});
-    }
-   }
-   catch(error){
-    return res.status(401).send({error});
-   }
-    // res.json('updateUser route')
 }
 
 export async function generateOTP(req,res){
-    let OTP = await otpGenerator.generate(6, {lowerCaseAlphabets: false, upperCaseAlphabets: false, specialChars: false});
+    req.app.locals.OTP = await otpGenerator.generate(6,{lowerCaseAlphabets:false, upperCaseAlphabets:false, specialChars: false});
+    res.status(201).send({code: req.app.locals.OTP})
 }
 
 
 export async function verifyOTP(req,res){
-    res.json('Verify OTP route');
+    const {code} = req.query;
+    if(parseInt(req.app.locals.OTP) === parseInt(code)){
+        req.app.locals.OTP = null;
+        req.app.locals.resetSession = true;
+        return res.status(201).send({msg:"Verify Successful"});
+    }
+    return res.status(400).send({error:"Invalid OTP"});
 }
 
 export async function createResetSession(req,res){
-    res.json('createResetSession route')
+    if(req.app.locals.resetSession){
+        req.app.locals.resetSession = false;
+        return res.staus(201).send({msg: "access granted!"});
+    }
+    return res.status(440).send({error:"Session expired!"});
 }
 
 export async function resetPassword(req,res){
-    res.json('reset password route');
+    try{
+        if(!req.app.locals.resetSession) return res.status(440).send({error:"Session expired!"});
+        const { username, password } = req.body;
+        try{
+            UserModel.findOne({username})
+                .then(user => {
+                    bcrypt.hash(password,10)
+                        .then(hashedPassword => {
+                            UserModel.updateOne({
+                                username: user.usrname,
+                                password: hashedPassword
+                            })
+                            .then(data => {
+                                res.status(201).send({msg:"Record Updated!!"});
+                            })
+                            .catch(e => {
+                                throw e;
+                            })
+                        })
+                        .catch( e => {
+                            return res.status(500).send({
+                                error: "unable to hash password"
+                            })
+                        })
+                })
+                .catch(error => {
+                    return res.status(404).send({error:"Username not Found"});
+                })
+        }
+        catch(error){
+            return res.staus(500).send({error})
+        }
+    }
+    catch (err){
+        return res.status(401).send({err});
+    }
 }
 
 export async function getAllData(req,res){
     const allUserData = UserModel.find({}).
         then(result => res.status(201).send({msg:result}));
-    console.log(allUserData);
+    // console.log(allUserData);
 }
