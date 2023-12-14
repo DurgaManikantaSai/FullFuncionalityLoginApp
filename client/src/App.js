@@ -1,4 +1,5 @@
 import React from 'react'
+<<<<<<< HEAD
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 
 //import All components
@@ -49,5 +50,15 @@ export default function App() {
 
         </RouterProvider>
     </main>
+=======
+
+export default function App() {
+  return (
+    <div>
+        <h1 className="text-3xl font-bold underline">
+          Hello world!
+        </h1>
+    </div>
+>>>>>>> original/master
   )
 }

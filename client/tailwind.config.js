@@ -8,4 +8,7 @@ module.exports = {
   },
   plugins: [],
 }
+<<<<<<< HEAD
 
+=======
+>>>>>>> original/master
