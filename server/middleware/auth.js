@@ -1,8 +1,7 @@
-import jwt from 'jsonwebtoken'
+import jwt from 'jsonwebtoken';
 import ENV from '../config.js'
 
-
-/**Auth middleware */
+/** auth middleware */
 export default async function Auth(req, res, next){
     try {
         
@@ -21,10 +20,11 @@ export default async function Auth(req, res, next){
     }
 }
 
-export function localVariables(req,res,next){
+
+export function localVariables(req, res, next){
     req.app.locals = {
-        OTP: null,
-        resetSession: false
+        OTP : null,
+        resetSession : false
     }
     next()
 }

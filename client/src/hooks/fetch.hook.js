@@ -1,36 +1,37 @@
-import axios from 'axios';
-import { useState,useEffect } from 'react';
+import axios from "axios";
+import { useEffect, useState } from "react";
+import { getUsername } from '../helper/helper'
 
-axios.defaults.baseURL = process.env.REACT_APP_SERVER_DOMAIN
+axios.defaults.baseURL = process.env.REACT_APP_SERVER_DOMAIN;
 
+
+/** custom hook */
 export default function useFetch(query){
-    const [getData,setData] = useState({isLoading:false,apiData:undefined, status: null, serverError: null})
+    const [getData, setData] = useState({ isLoading : false, apiData: undefined, status: null, serverError: null })
 
     useEffect(() => {
-        if(!query) return ;
 
         const fetchData = async () => {
-            try{
-                setData(prev => ({ ...prev, isLoading: true}))
+            try {
+                setData(prev => ({ ...prev, isLoading: true}));
 
-                const {data, status } = await axios.get(`/api/${query}`);
+                const { username } = !query ? await getUsername() : '';
+                
+                const { data, status } = !query ? await axios.get(`/api/user/${username}`) : await axios.get(`/api/${query}`);
 
-                if(statsus === 201){
-                    setData(prev => ({ ...prev, isLoading: false}))
-                    setData(prev => ({ ...prev, apiData: data,status: status}))
+                if(status === 201){
+                    setData(prev => ({ ...prev, isLoading: false}));
+                    setData(prev => ({ ...prev, apiData : data, status: status }));
                 }
 
-                setData(prev => ({ ...prev, isLoading: false}))
-
-
-            }
-            catch(error){
-                setData(prev => ({ ...prev, isLoading: false,serverError:error}))
-                
+                setData(prev => ({ ...prev, isLoading: false}));
+            } catch (error) {
+                setData(prev => ({ ...prev, isLoading: false, serverError: error }))
             }
         };
-        fetchData();
-    },[query])
+        fetchData()
 
-    return [getData,setData];
+    }, [query]);
+
+    return [getData, setData];
 }
